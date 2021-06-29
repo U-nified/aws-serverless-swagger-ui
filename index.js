@@ -1,12 +1,12 @@
-'use strict'
+'use strict';
 
 const fs = require('fs').promises;
 const path = require('path');
 const swaggerUi = require('swagger-ui-dist');
 const absolutePath = swaggerUi.getAbsoluteFSPath();
 const debug = (msg) => {
-    process.env.DEBUG ? console.log(msg) : null
-}
+	process.env.DEBUG ? console.log(msg) : null;
+};
 
 const htmlTplString = (swaggerUiInit, faviconEncoded) => `
 <!-- HTML for static distribution bundle build -->
@@ -74,81 +74,75 @@ window.onload = function() {
 `;
 
 const contentType = (ext) => {
-    switch (ext) {
-        case '.js':
-            return 'application/javascript';
-        case '.html':
-            return 'text/html';
-        case '.css':
-            return 'text/css';
-        default:
-            return 'text/plain';
-    }
-}
-
-const generateHTML = async (swaggerFile) => {
-    const swaggerInit = jsTplString(swaggerFile)
-
-    const favicon = await fs.readFile(`${absolutePath}/favicon-32x32.png`)
-    const faviconEncoded = Buffer.from(favicon).toString('base64');
-
-    return htmlTplString(swaggerInit, faviconEncoded)
+	switch (ext) {
+		case '.js':
+			return 'application/javascript';
+		case '.html':
+			return 'text/html';
+		case '.css':
+			return 'text/css';
+		default:
+			return 'text/plain';
+	}
 };
 
+const generateHTML = async (swaggerFile) => {
+	const swaggerInit = jsTplString(swaggerFile);
+
+	const favicon = await fs.readFile(`${absolutePath}/favicon-32x32.png`);
+	const faviconEncoded = Buffer.from(favicon).toString('base64');
+
+	return htmlTplString(swaggerInit, faviconEncoded);
+};
 
 const proxy_response = (body, headers = {}, statusCode = 200) => {
-    return {statusCode, headers, body}
-}
+	return { statusCode, headers, body };
+};
 
 const setup = async (swaggerFile) => {
-    const swaggerDoc = await fs.readFile(swaggerFile);
+	const swaggerDoc = await fs.readFile(swaggerFile);
 
-    return async function (event, context, callback) {
+	return async function (event, context, callback) {
+		debug('incoming event=' + JSON.stringify(event));
 
-        debug("incoming event=" + JSON.stringify(event));
+		const resource = path.basename(event.path);
+		debug('Request for API DOCS: ' + resource);
 
-        const resource = path.basename(event.path);
-        debug("Request for API DOCS: " + resource);
+		if (resource === 'docs') {
+			return proxy_response(await generateHTML(swaggerFile), {
+				'content-type': 'text/html',
+			});
+		}
 
-        if (resource === 'index.html') {
-            return proxy_response(
-                await generateHTML(swaggerFile),
-                {"content-type": "text/html"}
-            );
-        }
+		// serve swaggerDoc yaml file
+		if (resource === path.basename(swaggerFile)) {
+			debug(
+				'Request for the individual swagger doc yaml. Returning string of length ' +
+					swaggerDoc.length
+			);
+			return proxy_response(Buffer.from(swaggerDoc).toString(), {
+				'content-type': 'text/yaml',
+			});
+		}
 
-        // serve swaggerDoc yaml file
-        if (resource === path.basename(swaggerFile)) {
-            debug("Request for the individual swagger doc yaml. Returning string of length " + swaggerDoc.length);
-            return proxy_response(
-                Buffer.from(swaggerDoc).toString(),
-                {"content-type": "text/yaml"}
-            );
-        }
+		debug(`Going to read file ${resource} with absolute path ${absolutePath}`);
 
-        debug(`Going to read file ${resource} with absolute path ${absolutePath}`);
+		try {
+			const data = await fs.readFile(`${absolutePath}/${resource}`);
+			debug('Read file successfully. length=' + data.length);
 
-        try {
-            const data = await fs.readFile(`${absolutePath}/${resource}`)
-            debug("Read file successfully. length=" + data.length);
-
-            return proxy_response(
-                Buffer.from(data).toString(),
-                {"content-type": contentType(path.extname(resource))},
-                200,
-            );
-
-        } catch (e) {
-            return proxy_response(
-                "not found",
-                {"content-type": "text/plain"},
-                404,
-            );
-        }
-    }
+			return proxy_response(
+				Buffer.from(data).toString(),
+				{ 'content-type': contentType(path.extname(resource)) },
+				200
+			);
+		} catch (e) {
+			return proxy_response('not found', { 'content-type': 'text/plain' }, 404);
+		}
+	};
 };
 
 module.exports = {
-    setup,
-    generateHTML
-}
+	setup,
+	generateHTML,
+};
