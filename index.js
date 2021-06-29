@@ -15,7 +15,7 @@ const htmlTplString = (swaggerUiInit, faviconEncoded) => `
 <head>
   <meta charset="UTF-8">
   <title>Swagger UI</title>
-  <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
+  <link rel="stylesheet" type="text/css" href="./docs/swagger-ui.css" >
   <link rel="icon" href="data:image/png;base64,${faviconEncoded}" />
   <style>
     html
@@ -43,8 +43,8 @@ const htmlTplString = (swaggerUiInit, faviconEncoded) => `
 
 <div id="swagger-ui"></div>
 
-<script src="./swagger-ui-bundle.js"> </script>
-<script src="./swagger-ui-standalone-preset.js"> </script>
+<script src="./docs/swagger-ui-bundle.js"> </script>
+<script src="./docs/swagger-ui-standalone-preset.js"> </script>
 <script>
 ${swaggerUiInit}
 </script>
