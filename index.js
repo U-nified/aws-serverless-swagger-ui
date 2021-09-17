@@ -2,7 +2,7 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const swaggerUi = require('swagger-ui-dist');
+const swaggerUi = require('./swagger-ui-dist');
 const absolutePath = swaggerUi.getAbsoluteFSPath();
 const debug = (msg) => {
 	process.env.DEBUG ? console.log(msg) : null;

@@ -22,7 +22,7 @@
 	},
 	"bundleDependencies": false,
 	"dependencies": {
-		"swagger-ui-dist": "github:U-nified/swagger-ui"
+		"swagger-ui-dist": "^3.38.0"
 	},
 	"deprecated": false,
 	"files": [
