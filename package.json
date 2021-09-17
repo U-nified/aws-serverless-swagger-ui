@@ -21,7 +21,9 @@
 		"url": "https://github.com/sylwit/aws-serverless-swagger-ui/issues"
 	},
 	"bundleDependencies": false,
-	"dependencies": {},
+	"dependencies": {
+		"swagger-ui-dist": "github:U-nified/swagger-ui-dist"
+	},
 	"deprecated": false,
 	"files": [
 		"package.json",
